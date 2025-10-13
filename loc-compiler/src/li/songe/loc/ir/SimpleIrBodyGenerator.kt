@@ -37,12 +37,14 @@ class SimpleIrBodyGenerator(
         }
     }
 
+    // for methodName
     val pathList = mutableListOf<IrDeclarationWithName>()
+    fun skipPath(declaration: IrDeclarationWithName): Boolean {
+        return declaration.name.isSpecial || declaration.name.asString().isEmpty()
+    }
 
     override fun visitClass(declaration: IrClass): IrStatement {
-        if (declaration.name.asString().isEmpty()) {
-            return super.visitClass(declaration)
-        }
+        if (skipPath(declaration)) super.visitClass(declaration)
         pathList.add(declaration)
         return super.visitClass(declaration).also {
             pathList.removeLast()
@@ -50,9 +52,7 @@ class SimpleIrBodyGenerator(
     }
 
     override fun visitFunction(declaration: IrFunction): IrStatement {
-        if (declaration.name.asString().isEmpty()) {
-            return super.visitFunction(declaration)
-        }
+        if (skipPath(declaration)) return super.visitFunction(declaration)
         pathList.add(declaration)
         return super.visitFunction(declaration).also {
             pathList.removeLast()
