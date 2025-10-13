@@ -1,3 +1,3 @@
 # What's Changed
 
-- fix: methodName hide invalid path
+- feat: template support packageName
