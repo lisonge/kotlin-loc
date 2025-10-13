@@ -45,6 +45,17 @@ sealed class TemplateIdentifier(val name: String) {
         }
     }
 
+    data object PackageName : TemplateIdentifier("packageName") {
+        override fun build(
+            locOptions: LocOptions,
+            irFile: IrFile,
+            expression: IrElement,
+            pathList: List<IrDeclarationWithName>,
+        ): String {
+            return irFile.packageFqName.asString()
+        }
+    }
+
     data object MethodName : TemplateIdentifier("methodName") {
         override fun build(
             locOptions: LocOptions,
@@ -82,6 +93,7 @@ sealed class TemplateIdentifier(val name: String) {
             listOf(
                 FilePath,
                 ClassName,
+                PackageName,
                 FileName,
                 LineNumber,
                 ColumnNumber,

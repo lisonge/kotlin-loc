@@ -123,6 +123,7 @@ loc {
 | `{filePath}`     | `example/src/commonMain/kotlin/example/Example.kt` |
 | `{fileName}`     | `Example.kt`                                       |
 | `{className}`    | `example.ExampleKt`                                |
+| `{packageName}`  | `example`                                          |
 | `{methodName}`   | `main`                                             |
 | `{lineNumber}`   | `6`                                                |
 | `{columnNumber}` | `5`                                                |
