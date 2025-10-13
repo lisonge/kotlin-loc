@@ -1,3 +1,3 @@
 # What's Changed
 
-- first version
+- fix: methodName hide invalid path
