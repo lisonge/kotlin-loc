@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrFile
 
-class LocTemplate(val value: String) {
+data class LocTemplate(val value: String) {
     // List<Char | TemplateIdentifier>
     private val data = run {
         var i = 0

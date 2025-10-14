@@ -14,14 +14,20 @@ import li.songe.loc.Loc
 
 fun main() {
     println("[${LOC}]: Hello, World!")
-    // [example.ExampleKt.main(Example.kt:6)]: Hello, World!
+    // [example.ExampleKt.main(Example.kt:7)]: Hello, World!
     test("Hello, World!")
     // [example.ExampleKt.main(Example.kt:9)]: Hello, World!
+    test2("Hello, World!")
+    // [Example.kt:11]: Hello, World!
     println(Throwable().stackTraceToString())
     // see the following stack trace (jvm/mingwX64)
 }
 
 fun test(message: String, @Loc loc: String = "") {
+    println("[$loc]: $message")
+}
+
+fun test2(message: String, @Loc loc: String = "{fileName}:{lineNumber}") { // custom template
     println("[$loc]: $message")
 }
 ```
@@ -115,6 +121,17 @@ loc {
     // the default configuration
     template = "{className}.{methodName}({fileName}:{lineNumber})"
     // output -> example.ExampleKt.main(Example.kt:6)
+}
+```
+
+```kotlin
+// use configuration from above
+fun test(message: String, @Loc loc: String = "") {
+    println("[$loc]: $message")
+}
+// use custom template
+fun test2(message: String, @Loc loc: String = "{fileName}:{lineNumber}") {
+    println("[$loc]: $message")
 }
 ```
 

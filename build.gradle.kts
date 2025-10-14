@@ -1,3 +1,5 @@
+import java.util.*
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.jvm) apply false
@@ -5,9 +7,13 @@ plugins {
     alias(libs.plugins.buildconfig)
 }
 
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.reader()?.use { load(it) }
+}
+
 allprojects {
     group = "li.songe.loc"
-    version = "0.2.0"
+    version = "0.2.0" + (localProperties["loc.version.postfix"] ?: "")
     repositories {
         mavenLocal()
         mavenCentral()
