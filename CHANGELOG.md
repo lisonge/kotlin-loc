@@ -1,3 +1,3 @@
 # What's Changed
 
-- feat: template support packageName
+- feat: support custom template
