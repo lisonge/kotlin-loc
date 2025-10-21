@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.fromSymbolOwner
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.FqName
@@ -27,9 +26,6 @@ class SimpleIrBodyGenerator(
     val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoid() {
     var currentFile: IrFile? = null
-
-    val constName = "<get-LOC>"
-    val constLocFqName = FqName("${BuildConfig.KOTLIN_PLUGIN_ID}.$constName")
     val annotationFqName = FqName("${BuildConfig.KOTLIN_PLUGIN_ID}.Loc")
     val stringType get() = pluginContext.irBuiltIns.stringType
     val templateCache = HashMap<String, LocTemplate>()
@@ -67,54 +63,44 @@ class SimpleIrBodyGenerator(
         }
     }
 
-
-    private fun getLocIndexTemplate(expression: IrCall): Pair<Int, LocTemplate>? {
-        expression.arguments.forEachIndexed { i, arg ->
-            if (arg == null) {
-                val p = expression.symbol.owner.parameters[i]
-                if (p.type == stringType && p.hasAnnotation(annotationFqName)) {
+    override fun visitCall(expression: IrCall): IrExpression {
+        val owner = expression.symbol.owner
+        if (owner.hasAnnotation(annotationFqName)) {
+            val resultList = expression.arguments.mapIndexedNotNull { index, arg ->
+                val p = owner.parameters[index]
+                if (arg == null && p.type == stringType && p.hasAnnotation(annotationFqName)) {
                     val e = p.defaultValue?.expression
-                    return i to if (e is IrConst && e.kind == IrConstKind.String) {
+                    index to if (e is IrConst && e.kind == IrConstKind.String) {
                         getTemplate(e.value as String)
                     } else {
                         locOptions.actualTemplate
                     }
+                } else {
+                    null
                 }
             }
-        }
-        return null
-    }
-
-    override fun visitCall(expression: IrCall): IrExpression {
-        val owner = expression.symbol.owner
-        if (owner.name.asString() == constName && owner.fqNameWhenAvailable == constLocFqName) {
-            return IrConstImpl.string(
-                expression.startOffset,
-                expression.endOffset,
-                stringType,
-                locOptions.actualTemplate.build(locOptions, currentFile!!, expression, pathList)
-            )
-        }
-
-        getLocIndexTemplate(expression)?.let { (locIndex, locTemplate) ->
-            val newExp = IrCallImpl.fromSymbolOwner(
-                expression.startOffset,
-                expression.endOffset,
-                expression.type,
-                expression.symbol,
-                expression.origin,
-                expression.superQualifierSymbol
-            )
-            expression.arguments.forEachIndexed { i, arg ->
-                newExp.arguments[i] = arg
+            if (resultList.isNotEmpty()) {
+                val newExp = IrCallImpl.fromSymbolOwner(
+                    expression.startOffset,
+                    expression.endOffset,
+                    expression.type,
+                    expression.symbol,
+                    expression.origin,
+                    expression.superQualifierSymbol
+                )
+                expression.arguments.forEachIndexed { i, arg ->
+                    newExp.arguments[i] = arg
+                }
+                for ((locIndex, locTemplate) in resultList) {
+                    newExp.arguments[locIndex] = IrConstImpl.string(
+                        UNDEFINED_OFFSET,
+                        UNDEFINED_OFFSET,
+                        stringType,
+                        locTemplate.build(locOptions, currentFile!!, expression, pathList)
+                    )
+                }
+                return super.visitCall(newExp)
             }
-            newExp.arguments[locIndex] = IrConstImpl.string(
-                UNDEFINED_OFFSET,
-                UNDEFINED_OFFSET,
-                stringType,
-                locTemplate.build(locOptions, currentFile!!, expression, pathList)
-            )
-            return super.visitCall(newExp)
         }
         return super.visitCall(expression)
     }

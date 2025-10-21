@@ -17,4 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "kotlin-loc"
 include("loc-gradle-plugin")
 include("loc-compiler")
-include("loc-runtime")
+include("loc-annotation")

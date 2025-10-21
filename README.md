@@ -9,12 +9,9 @@ problem of `Throwable().printStackTrace()` being unfriendly to minimization and 
 ```kotlin
 package example
 
-import li.songe.loc.LOC
 import li.songe.loc.Loc
 
 fun main() {
-    println("[${LOC}]: Hello, World!")
-    // [example.ExampleKt.main(Example.kt:7)]: Hello, World!
     test("Hello, World!")
     // [example.ExampleKt.main(Example.kt:9)]: Hello, World!
     test2("Hello, World!")
@@ -23,10 +20,12 @@ fun main() {
     // see the following stack trace (jvm/mingwX64)
 }
 
+@Loc
 fun test(message: String, @Loc loc: String = "") {
     println("[$loc]: $message")
 }
 
+@Loc
 fun test2(message: String, @Loc loc: String = "{fileName}:{lineNumber}") { // custom template
     println("[$loc]: $message")
 }
@@ -79,7 +78,7 @@ kotlin.Throwable
 loc = "<version>" # https://github.com/lisonge/kotlin-loc/releases
 
 [libraries]
-loc-runtime = { module = "li.songe.loc:loc-runtime", version.ref = "loc" }
+loc-annotation = { module = "li.songe.loc:loc-annotation", version.ref = "loc" }
 
 [plugins]
 loc = { id = "li.songe.loc", version.ref = "loc" }
@@ -104,7 +103,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                compileOnly(libs.loc.runtime)
+                compileOnly(libs.loc.annotation)
             }
         }
     }

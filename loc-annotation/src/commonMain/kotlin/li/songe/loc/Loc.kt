@@ -1,20 +1,11 @@
 package li.songe.loc
 
 /**
- * A string constant that is automatically filled with the location of the call site.
- *
- * ```kotlin
- * println("[${LOC}]: Hello, World!")
- * // [example.ExampleKt.main(Example.kt:6)]: Hello, World!
- * ```
- */
-public val LOC: String get() = throw NotImplementedError()
-
-/**
  * Marks a function parameter to be automatically filled with the location of the call site.
  *
  * ```kotlin
  * // use default template
+ * @Loc // annotate function for optimize speed compilation
  * fun test1(message: String, @Loc loc: String = "") {
  *     println("[$loc] $message")
  * }
@@ -22,6 +13,7 @@ public val LOC: String get() = throw NotImplementedError()
  * // [example.ExampleKt.main(Example.kt:9)]: Hello, World!
  *
  * // custom template
+ * @Loc
  * fun test2(message: String, @Loc loc: String = "{fileName}:{lineNumber}") {
  *     println("[$loc] $message")
  * }
@@ -29,6 +21,6 @@ public val LOC: String get() = throw NotImplementedError()
  * // [Example.kt:9]: Hello, World!
  * ```
  */
-@Target(AnnotationTarget.VALUE_PARAMETER)
+@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.SOURCE)
 public annotation class Loc
