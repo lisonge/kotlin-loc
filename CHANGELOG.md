@@ -1,3 +1,3 @@
 # What's Changed
 
-- feat: support custom template
+- refactor: rename LOC to Loc and update annotation usage
