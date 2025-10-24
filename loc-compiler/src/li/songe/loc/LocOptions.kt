@@ -7,7 +7,12 @@ data class LocOptions(
     val projectPath: String,
     val template: String,
 ) {
-    val actualTemplate = LocTemplate(template)
+    private val defaultTemplate = LocTemplate(template)
+    val templateCache = HashMap<String, LocTemplate>()
+    fun getTemplate(value: String): LocTemplate {
+        if (value.isEmpty()) return defaultTemplate
+        return templateCache.getOrPut(value) { LocTemplate(value) }
+    }
 
     companion object {
         val projectPath = ConfigKey.StringKey(

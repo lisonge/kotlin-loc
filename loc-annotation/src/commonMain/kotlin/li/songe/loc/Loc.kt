@@ -14,13 +14,13 @@ package li.songe.loc
  *
  * // custom template
  * @Loc
- * fun test2(message: String, @Loc loc: String = "{fileName}:{lineNumber}") {
+ * fun test2(message: String, @Loc("{fileName}:{lineNumber}") loc: String = "") {
  *     println("[$loc] $message")
  * }
  * test2("Hello, World!")
  * // [Example.kt:9]: Hello, World!
  * ```
  */
-@Target(AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.FUNCTION)
-@Retention(AnnotationRetention.SOURCE)
-public annotation class Loc
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
+@Retention(AnnotationRetention.BINARY) // use BINARY to support incremental compile
+public annotation class Loc(val value: String = "") // use value save template to support incremental compile

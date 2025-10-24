@@ -2,7 +2,6 @@ package li.songe.loc.ir
 
 import li.songe.loc.BuildConfig
 import li.songe.loc.LocOptions
-import li.songe.loc.template.LocTemplate
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -17,6 +16,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.fromSymbolOwner
+import org.jetbrains.kotlin.ir.util.getAnnotation
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.FqName
@@ -28,11 +28,6 @@ class SimpleIrBodyGenerator(
     var currentFile: IrFile? = null
     val annotationFqName = FqName("${BuildConfig.KOTLIN_PLUGIN_ID}.Loc")
     val stringType get() = pluginContext.irBuiltIns.stringType
-    val templateCache = HashMap<String, LocTemplate>()
-    fun getTemplate(value: String): LocTemplate {
-        if (value.isEmpty()) return locOptions.actualTemplate
-        return templateCache.getOrPut(value) { LocTemplate(value) }
-    }
 
     override fun visitFile(declaration: IrFile): IrFile {
         currentFile = declaration
@@ -69,11 +64,11 @@ class SimpleIrBodyGenerator(
             val resultList = expression.arguments.mapIndexedNotNull { index, arg ->
                 val p = owner.parameters[index]
                 if (arg == null && p.type == stringType && p.hasAnnotation(annotationFqName)) {
-                    val e = p.defaultValue?.expression
+                    val e = p.getAnnotation(annotationFqName)?.arguments?.firstOrNull()
                     index to if (e is IrConst && e.kind == IrConstKind.String) {
-                        getTemplate(e.value as String)
+                        locOptions.getTemplate(e.value as String)
                     } else {
-                        locOptions.actualTemplate
+                        error("Unsupported LOC annotation argument in ${owner.name} at parameter ${p.name}")
                     }
                 } else {
                     null
