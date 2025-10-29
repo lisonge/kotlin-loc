@@ -125,10 +125,12 @@ loc {
 
 ```kotlin
 // use configuration from above
+@Loc
 fun test(message: String, @Loc loc: String = "") {
     println("[$loc]: $message")
 }
 // use custom template
+@Loc
 fun test2(message: String, @Loc("{fileName}:{lineNumber}") loc: String = "") {
     println("[$loc]: $message")
 }
