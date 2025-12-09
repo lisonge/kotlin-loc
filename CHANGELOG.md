@@ -1,3 +1,3 @@
 # What's Changed
 
-- refactor: support incremental compile
+- fix: support default value

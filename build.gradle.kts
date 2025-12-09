@@ -13,7 +13,7 @@ val localProperties = Properties().apply {
 
 allprojects {
     group = "li.songe.loc"
-    version = "0.5.0" + (localProperties["loc.version.postfix"] ?: "")
+    version = "0.5.1" + (localProperties["loc.version.postfix"] ?: "")
     repositories {
         mavenLocal()
         mavenCentral()
