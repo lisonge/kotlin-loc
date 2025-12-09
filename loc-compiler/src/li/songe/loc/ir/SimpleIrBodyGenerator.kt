@@ -69,7 +69,7 @@ class SimpleIrBodyGenerator(
                         locOptions.getTemplate(e.value as String)
                     } else {
                         // default value
-                        null
+                        locOptions.getTemplate("")
                     }
                 } else {
                     null
