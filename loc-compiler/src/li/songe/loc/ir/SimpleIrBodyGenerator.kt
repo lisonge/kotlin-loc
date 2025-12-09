@@ -68,7 +68,8 @@ class SimpleIrBodyGenerator(
                     index to if (e is IrConst && e.kind == IrConstKind.String) {
                         locOptions.getTemplate(e.value as String)
                     } else {
-                        error("Unsupported LOC annotation argument in ${owner.name} at parameter ${p.name}")
+                        // default value
+                        null
                     }
                 } else {
                     null
