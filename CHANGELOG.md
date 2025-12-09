@@ -1,3 +1,3 @@
 # What's Changed
 
-- fix: support default value
+- fix: use empty string as default value
