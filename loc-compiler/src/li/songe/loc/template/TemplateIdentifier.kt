@@ -1,90 +1,86 @@
 package li.songe.loc.template
 
-import li.songe.loc.LocOptions
+import li.songe.loc.ir.SimpleIrBodyGenerator
+import org.jetbrains.kotlin.backend.common.serialization.mangle.ir.isAnonymous
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 
 sealed class TemplateIdentifier(val name: String) {
-    abstract fun build(
-        locOptions: LocOptions,
-        irFile: IrFile,
-        expression: IrElement,
-        pathList: List<IrDeclarationWithName>,
-    ): String
+    abstract fun build(transformer: SimpleIrBodyGenerator, expression: IrElement): String
 
     data object FilePath : TemplateIdentifier("filePath") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
-        ) = irFile.path.removePrefix(locOptions.projectPath + "/")
+        ) = transformer.irFile!!.path.removePrefix(transformer.locOptions.projectPath + "/")
     }
 
     data object FileName : TemplateIdentifier("fileName") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
-        ) = irFile.name
+        ) = transformer.irFile!!.name
     }
 
     data object ClassName : TemplateIdentifier("className") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
         ): String {
-            val p = irFile.packageFqName.asString()
+            val p = transformer.irFile!!.packageFqName.asString()
             if (p.isNotEmpty()) {
-                return p + "." + irFile.packagePartClassName
+                return p + "." + transformer.irFile!!.packagePartClassName
             }
-            return irFile.packagePartClassName
+            return transformer.irFile!!.packagePartClassName
         }
     }
 
     data object PackageName : TemplateIdentifier("packageName") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
         ): String {
-            return irFile.packageFqName.asString()
+            return transformer.irFile!!.packageFqName.asString()
         }
     }
 
     data object MethodName : TemplateIdentifier("methodName") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
-        ) = pathList.joinToString(separator = ".") { it.name.asString() }
+        ): String {
+            val sb = mutableListOf<String>()
+            transformer.pathList.forEach { base ->
+                val name = when (base) {
+                    is IrAnonymousInitializer -> "<init>"
+                    is IrConstructor -> "<constructor>"
+                    is IrDeclarationWithName -> if (base.name.isAnonymous) "" else base.name.asString()
+                    else -> ""
+                }
+                if (name.isNotEmpty()) {
+                    sb.add(name)
+                }
+            }
+            return sb.joinToString(separator = ".")
+        }
     }
 
 
     data object LineNumber : TemplateIdentifier("lineNumber") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
         ): String {
-            return (irFile.fileEntry.getLineNumber(expression.startOffset) + 1).toString()
+            return (transformer.irFile!!.fileEntry.getLineNumber(expression.startOffset) + 1).toString()
         }
     }
 
     data object ColumnNumber : TemplateIdentifier("columnNumber") {
         override fun build(
-            locOptions: LocOptions,
-            irFile: IrFile,
+            transformer: SimpleIrBodyGenerator,
             expression: IrElement,
-            pathList: List<IrDeclarationWithName>,
         ): String {
-            return (irFile.fileEntry.getColumnNumber(expression.startOffset) + 1).toString()
+            return (transformer.irFile!!.fileEntry.getColumnNumber(expression.startOffset) + 1).toString()
         }
     }
 

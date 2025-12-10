@@ -1,9 +1,7 @@
 package li.songe.loc.template
 
-import li.songe.loc.LocOptions
+import li.songe.loc.ir.SimpleIrBodyGenerator
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrFile
 
 data class LocTemplate(val value: String) {
     // List<Char | TemplateIdentifier>
@@ -31,15 +29,13 @@ data class LocTemplate(val value: String) {
     }
 
     fun build(
-        locOptions: LocOptions,
-        irFile: IrFile,
+        transformer: SimpleIrBodyGenerator,
         expression: IrElement,
-        pathList: List<IrDeclarationWithName>,
     ) = buildString {
         for (part in data) {
             when (part) {
                 is Char -> append(part)
-                is TemplateIdentifier -> append(part.build(locOptions, irFile, expression, pathList))
+                is TemplateIdentifier -> append(part.build(transformer, expression))
                 else -> error("Unknown part: $part")
             }
         }

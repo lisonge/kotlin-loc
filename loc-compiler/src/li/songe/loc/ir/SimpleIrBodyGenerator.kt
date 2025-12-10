@@ -5,10 +5,7 @@ import li.songe.loc.LocOptions
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
@@ -25,37 +22,35 @@ class SimpleIrBodyGenerator(
     val locOptions: LocOptions,
     val pluginContext: IrPluginContext,
 ) : IrElementTransformerVoid() {
-    var currentFile: IrFile? = null
+    var irFile: IrFile? = null
     val annotationFqName = FqName("${BuildConfig.KOTLIN_PLUGIN_ID}.Loc")
     val stringType get() = pluginContext.irBuiltIns.stringType
 
     override fun visitFile(declaration: IrFile): IrFile {
-        currentFile = declaration
+        irFile = declaration
         return super.visitFile(declaration).also {
-            currentFile = null
+            irFile = null
         }
     }
 
-    // for methodName
-    val pathList = mutableListOf<IrDeclarationWithName>()
-    fun skipPath(declaration: IrDeclarationWithName): Boolean {
-        return declaration.name.isSpecial || declaration.name.asString().isEmpty()
+    val pathList = mutableListOf<IrDeclarationBase>()
+    private inline fun <T> walkIr(declaration: IrDeclarationBase, block: () -> T): T {
+        pathList.add(declaration)
+        return block().also {
+            pathList.removeLast()
+        }
     }
 
     override fun visitClass(declaration: IrClass): IrStatement {
-        if (skipPath(declaration)) super.visitClass(declaration)
-        pathList.add(declaration)
-        return super.visitClass(declaration).also {
-            pathList.removeLast()
-        }
+        return walkIr(declaration) { super.visitClass(declaration) }
+    }
+
+    override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer): IrStatement {
+        return walkIr(declaration) { super.visitAnonymousInitializer(declaration) }
     }
 
     override fun visitFunction(declaration: IrFunction): IrStatement {
-        if (skipPath(declaration)) return super.visitFunction(declaration)
-        pathList.add(declaration)
-        return super.visitFunction(declaration).also {
-            pathList.removeLast()
-        }
+        return walkIr(declaration) { super.visitFunction(declaration) }
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
@@ -92,7 +87,7 @@ class SimpleIrBodyGenerator(
                         UNDEFINED_OFFSET,
                         UNDEFINED_OFFSET,
                         stringType,
-                        locTemplate.build(locOptions, currentFile!!, expression, pathList)
+                        locTemplate.build(this, expression)
                     )
                 }
                 return super.visitCall(newExp)
