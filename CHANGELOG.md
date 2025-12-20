@@ -1,3 +1,3 @@
 # What's Changed
 
-- refactor: TemplateIdentifier
+- fix: add CompilerPluginRegistrar.pluginId to compat kotlin 2.3
