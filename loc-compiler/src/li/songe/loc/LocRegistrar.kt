@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 
 class LocRegistrar : CompilerPluginRegistrar() {
     override val supportsK2 get() = true
+    override val pluginId get() = BuildConfig.KOTLIN_PLUGIN_ID
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
         val options = LocOptions.build(configuration)
